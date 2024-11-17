@@ -1,0 +1,18 @@
+###
+GET localhost:8080/
+
+###
+GET localhost:8080/vote
+
+###
+POST localhost:8080/vote
+
+{
+ "name": "{{$random.superhero.power}}",
+ "end_date": "2024-12-30T00:00:00Z",
+ "is_public": true,
+ "options": {
+   "{{$random.team.sport}}": "{{$random.team.sport}}",
+   "{{$random.team.sport}}": "{{$random.team.sport}}"
+ }
+}
