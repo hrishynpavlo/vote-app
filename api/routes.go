@@ -29,17 +29,12 @@ func (h *VoteController) CreateVote(c *gin.Context) {
 	}
 
 	vote := contracts.Vote{
-		ID:            uuid.New(),
-		Name:          createVote.Name,
-		CreatedAt:     time.Now().UTC(),
-		EndDate:       createVote.EndDate,
-		IsPublic:      createVote.IsPublic,
-		Options:       createVote.Options,
-		DisplayResult: make(map[string]int8),
-	}
-
-	for key := range createVote.Options {
-		vote.DisplayResult[key] = 0
+		ID:        uuid.New(),
+		Name:      createVote.Name,
+		CreatedAt: time.Now().UTC(),
+		EndDate:   createVote.EndDate,
+		IsPublic:  createVote.IsPublic,
+		Options:   createVote.Options,
 	}
 
 	if err := h.db.CreateVote(&vote); err != nil {
@@ -62,5 +57,32 @@ func (h *VoteController) GetVotes(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": votes})
 
+	return
+}
+
+func (h *VoteController) GetVoteStats(c *gin.Context) {
+	id := c.Param("id")
+	voteStats, err := h.db.GetVoteStats(id)
+	if err != nil {
+		log.Printf("Error getting vote stats: %s", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "no vote stats"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": voteStats})
+	return
+}
+
+func (h *VoteController) Vote(c *gin.Context) {
+	id := c.Param("id")
+	optionID := c.Param("optionId")
+	voteStats, err := h.db.Vote(id, optionID)
+	if err != nil {
+		log.Printf("Error during voting: %s", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "vote rejected"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": voteStats})
 	return
 }

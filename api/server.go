@@ -18,17 +18,15 @@ func AddGin(lc fx.Lifecycle, metricsRegistry metrics.Registry, voteController *V
 
 	r.Use(collectMetrics(metricsRegistry))
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "OK",
-		})
-
-		return
-	})
+	r.GET("/", pingPong)
 
 	r.POST("/vote", voteController.CreateVote)
 
 	r.GET("/vote", voteController.GetVotes)
+
+	r.GET("/vote/:id/stats", voteController.GetVoteStats)
+
+	r.PATCH("/vote/:id/submit/:optionId", voteController.Vote)
 
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
@@ -59,4 +57,11 @@ func collectMetrics(metricsRegistry metrics.Registry) gin.HandlerFunc {
 		latency := time.Since(now).Microseconds()
 		latencyTracker.Update(latency)
 	}
+}
+func pingPong(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "OK",
+	})
+
+	return
 }

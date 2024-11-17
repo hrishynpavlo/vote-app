@@ -16,3 +16,9 @@ POST localhost:8080/vote
    "{{$random.team.sport}}": "{{$random.team.sport}}"
  }
 }
+
+###
+GET localhost:8080/vote/:id/stats
+
+###
+PATCH localhost:8080/vote/:id/submit/:optionId
