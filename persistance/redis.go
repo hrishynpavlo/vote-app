@@ -8,19 +8,23 @@ import (
 	"vote-app/contracts"
 )
 
-func CreateVote(vote *contracts.Vote, db *redis.Client) error {
+type RedisCache struct {
+	Db *redis.Client
+}
+
+func (cache *RedisCache) CreateVote(vote *contracts.Vote) error {
 	voteJson, _ := json.Marshal(&vote)
-	_, err := db.Set(context.Background(), fmt.Sprintf("votes:%s", vote.ID.String()), voteJson, 0).Result()
+	_, err := cache.Db.Set(context.Background(), fmt.Sprintf("votes:%s", vote.ID.String()), voteJson, 0).Result()
 	return err
 }
 
-func GetVotes(db *redis.Client) ([]contracts.Vote, error) {
+func (cache *RedisCache) GetVotes() ([]contracts.Vote, error) {
 	var cursor uint64
-	keys, cursor, err := db.Scan(context.Background(), cursor, "votes:*", 10).Result()
+	keys, cursor, err := cache.Db.Scan(context.Background(), cursor, "votes:*", 10).Result()
 	if err != nil {
 		return nil, err
 	}
-	pipe := db.Pipeline()
+	pipe := cache.Db.Pipeline()
 	for _, key := range keys {
 		pipe.Get(context.Background(), key)
 	}

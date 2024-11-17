@@ -1,10 +1,22 @@
 package configuration
 
 import (
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"log"
+	"os"
 )
 
 func BuildConfiguration() (*Configuration, error) {
+	if os.Getenv("APP_MODE") == "DEBUG" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error dugirn loading .env file: %v", err)
+
+			return nil, err
+		}
+	}
+
 	var c Configuration
 	if err := envconfig.Process("", &c); err != nil {
 		return nil, err

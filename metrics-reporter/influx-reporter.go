@@ -5,14 +5,35 @@ import (
 	"fmt"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
-	_ "github.com/influxdata/line-protocol"
+	"go.uber.org/fx"
 	"log"
 	uurl "net/url"
 	"time"
+	"vote-app/configuration"
 
 	client "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/rcrowley/go-metrics"
 )
+
+type Reporter struct {
+	r *reporter
+}
+
+var _defaultTags = map[string]string{"app": "vote_api", "machine_name": "vote_api_local"}
+
+func MetricsReporter(lc fx.Lifecycle, cfg *configuration.Configuration, metricsRegistry metrics.Registry) *Reporter {
+	r := influxDBWithTags(metricsRegistry, time.Second*30, cfg.InfluxUrl,
+		cfg.InfluxOrg, cfg.InfluxBucket, "unit", cfg.InfluxToken, _defaultTags, true)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			go r.run()
+			return nil
+		},
+	})
+
+	return &Reporter{r: r}
+}
 
 type reporter struct {
 	reg          metrics.Registry
@@ -29,11 +50,11 @@ type reporter struct {
 }
 
 // InfluxDBWithTags starts a InfluxDB reporter which will post the metrics from the given registry at each d interval with the specified tags
-func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, organization, bucket, measurement, token string, tags map[string]string, align bool) {
+func influxDBWithTags(r metrics.Registry, d time.Duration, url, organization, bucket, measurement, token string, tags map[string]string, align bool) *reporter {
 	u, err := uurl.Parse(url)
 	if err != nil {
 		log.Printf("unable to parse InfluxDB url %s. err=%v", url, err)
-		return
+		return nil
 	}
 
 	rep := &reporter{
@@ -49,10 +70,10 @@ func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, organization, bu
 	}
 	if err := rep.makeClient(); err != nil {
 		log.Printf("unable to make InfluxDB client. err=%v", err)
-		return
+		return nil
 	}
 
-	rep.run()
+	return rep
 }
 
 func (r *reporter) makeClient() (err error) {

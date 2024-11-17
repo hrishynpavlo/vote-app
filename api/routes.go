@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"time"
@@ -11,7 +10,17 @@ import (
 	"vote-app/persistance"
 )
 
-func CreateVote(c *gin.Context, db *redis.Client) {
+type VoteController struct {
+	db *persistance.RedisCache
+}
+
+func AddVoteController(db *persistance.RedisCache) *VoteController {
+	return &VoteController{
+		db: db,
+	}
+}
+
+func (h *VoteController) CreateVote(c *gin.Context) {
 	var createVote contracts.CreateVote
 
 	if err := c.ShouldBindBodyWithJSON(&createVote); err != nil {
@@ -29,11 +38,11 @@ func CreateVote(c *gin.Context, db *redis.Client) {
 		DisplayResult: make(map[string]int8),
 	}
 
-	for key, _ := range createVote.Options {
+	for key := range createVote.Options {
 		vote.DisplayResult[key] = 0
 	}
 
-	if err := persistance.CreateVote(&vote, db); err != nil {
+	if err := h.db.CreateVote(&vote); err != nil {
 		log.Printf("Error storing vote: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "vote not created"})
 		return
@@ -43,9 +52,9 @@ func CreateVote(c *gin.Context, db *redis.Client) {
 	return
 }
 
-func GetVotes(c *gin.Context, db *redis.Client) {
+func (h *VoteController) GetVotes(c *gin.Context) {
 
-	votes, err := persistance.GetVotes(db)
+	votes, err := h.db.GetVotes()
 	if err != nil {
 		log.Printf("Error getting votes: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "no votes"})
