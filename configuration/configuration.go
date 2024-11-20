@@ -34,4 +34,6 @@ type Configuration struct {
 	RedisUrl      string `envconfig:"REDIS_URL"`
 	RedisDB       int    `envconfig:"REDIS_DB"`
 	RedisPassword string `envconfig:"REDIS_PASSWORD" default:""`
+
+	Port int `envconfig:"PORT" default:"8080"`
 }

@@ -2,10 +2,13 @@
 GET localhost:8080/
 
 ###
-GET localhost:8080/vote
+GET localhost:8080/metrics
 
 ###
-POST localhost:8080/vote
+GET localhost:8080/api/vote
+
+###
+POST localhost:8080/api/vote
 
 {
  "name": "{{$random.superhero.power}}",
@@ -18,7 +21,7 @@ POST localhost:8080/vote
 }
 
 ###
-GET localhost:8080/vote/:id/stats
+GET localhost:8080/api/vote/:id/stats
 
 ###
-PATCH localhost:8080/vote/:id/submit/:optionId
+PATCH localhost:8080/api/vote/:id/submit/:optionId

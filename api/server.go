@@ -2,36 +2,46 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rcrowley/go-metrics"
 	"go.uber.org/fx"
 	"net/http"
 	"time"
+	"vote-app/configuration"
 )
 
 type Server struct {
 	r *gin.Engine
 }
 
-func AddGin(lc fx.Lifecycle, metricsRegistry metrics.Registry, voteController *VoteController) *Server {
+func AddGin(lc fx.Lifecycle, metricsRegistry metrics.Registry, voteController *VoteController, configuration *configuration.Configuration) *Server {
 	r := gin.New()
 
 	r.Use(collectMetrics(metricsRegistry))
 
 	r.GET("/", pingPong)
 
-	r.POST("/vote", voteController.CreateVote)
+	r.GET("/metrics", func(c *gin.Context) {
+		c.JSON(http.StatusOK, metricsRegistry.GetAll())
+		return
+	})
 
-	r.GET("/vote", voteController.GetVotes)
+	api := r.Group("/api")
+	voteApi := api.Group("/vote")
 
-	r.GET("/vote/:id/stats", voteController.GetVoteStats)
+	voteApi.POST("", voteController.CreateVote)
 
-	r.PATCH("/vote/:id/submit/:optionId", voteController.Vote)
+	voteApi.GET("", voteController.GetVotes)
+
+	voteApi.GET("/:id/stats", voteController.GetVoteStats)
+
+	voteApi.PATCH("/:id/submit/:optionId", voteController.Vote)
 
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
 			go func() {
-				err := r.Run(":8080")
+				err := r.Run(fmt.Sprintf(":%d", configuration.Port))
 				if err != nil {
 					panic(err)
 				}
