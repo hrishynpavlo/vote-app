@@ -22,7 +22,9 @@ type Reporter struct {
 var _defaultTags = map[string]string{"app": "vote_api", "machine_name": "vote_api_local"}
 
 func MetricsReporter(lc fx.Lifecycle, cfg *configuration.Configuration, metricsRegistry metrics.Registry) *Reporter {
-	r := influxDBWithTags(metricsRegistry, time.Second*30, cfg.InfluxUrl,
+	interval := time.Second * 30
+	metrics.RegisterRuntimeMemStats(metricsRegistry)
+	r := influxDBWithTags(metricsRegistry, interval, cfg.InfluxUrl,
 		cfg.InfluxOrg, cfg.InfluxBucket, "unit", cfg.InfluxToken, _defaultTags, true)
 
 	lc.Append(fx.Hook{
@@ -117,6 +119,7 @@ func (r *reporter) send() {
 	if r.align {
 		now = now.Truncate(r.interval)
 	}
+	metrics.CaptureRuntimeMemStatsOnce(r.reg)
 	r.reg.Each(func(name string, i interface{}) {
 
 		switch metric := i.(type) {
