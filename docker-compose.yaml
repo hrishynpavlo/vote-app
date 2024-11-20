@@ -8,6 +8,8 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - vote-app-network
 
   grafana:
     image: grafana/grafana-enterprise
@@ -16,6 +18,8 @@ services:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
+    networks:
+      - vote-app-network
 
   influxdb:
     image: influxdb:2
@@ -32,9 +36,15 @@ services:
     volumes:
       - influxdb2-data:/var/lib/influxdb2
       - influxdb2-config:/etc/influxdb2
+    networks:
+      - vote-app-network
 
 volumes:
   influxdb2-data:
   influxdb2-config:
   grafana-storage:
   redis-data:
+
+networks:
+  vote-app-network:
+    driver: bridge
