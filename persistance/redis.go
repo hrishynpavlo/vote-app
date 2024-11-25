@@ -39,7 +39,7 @@ func (cache *RedisCache) CreateVote(vote *contracts.Vote) error {
 
 func (cache *RedisCache) GetVotes() ([]contracts.Vote, error) {
 	var cursor uint64
-	keys, cursor, err := cache.Db.Scan(context.Background(), cursor, "votes:*", 10).Result()
+	keys, cursor, err := cache.Db.Scan(context.Background(), cursor, "votes:*", 100).Result()
 	if err != nil {
 		return nil, err
 	}
