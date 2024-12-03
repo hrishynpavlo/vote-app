@@ -21,7 +21,7 @@ type Reporter struct {
 
 var _defaultTags = map[string]string{"app": "vote_api", "machine_name": "vote_api_local"}
 
-func MetricsReporter(lc fx.Lifecycle, cfg *configuration.Configuration, metricsRegistry metrics.Registry) *Reporter {
+func AddMetricsReporter(lc fx.Lifecycle, cfg *configuration.Configuration, metricsRegistry metrics.Registry) *Reporter {
 	interval := time.Second * 30
 	metrics.RegisterRuntimeMemStats(metricsRegistry)
 	r := influxDBWithTags(metricsRegistry, interval, cfg.InfluxUrl,

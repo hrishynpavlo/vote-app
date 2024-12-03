@@ -14,14 +14,16 @@ func main() {
 	fx.New(
 		fx.Provide(
 			BuildConfiguration,
-			Persistence,
-			func() metrics.Registry { return metrics.DefaultRegistry },
-			metricsreporter.MetricsReporter,
+			AddRedis,
+			persistance.AddElasticSearchDb,
+			persistance.AddStorageDecorator,
+			AddMetricsRegistry,
+			metricsreporter.AddMetricsReporter,
 			api.AddVoteController,
 			api.AddGin),
 		fx.Invoke(
 			func(*metricsreporter.Reporter) {},
-			func(server *api.Server) {},
+			func(*api.Server) {},
 		),
 	).Run()
 }
@@ -34,7 +36,7 @@ func BuildConfiguration() *configuration.Configuration {
 
 	return cfg
 }
-func Persistence(cfg *configuration.Configuration) *persistance.RedisCache {
+func AddRedis(cfg *configuration.Configuration) *persistance.RedisCache {
 	db := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisUrl,
 		Password: cfg.RedisPassword,
@@ -43,4 +45,7 @@ func Persistence(cfg *configuration.Configuration) *persistance.RedisCache {
 	return &persistance.RedisCache{
 		Db: db,
 	}
+}
+func AddMetricsRegistry() metrics.Registry {
+	return metrics.DefaultRegistry
 }

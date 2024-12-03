@@ -36,4 +36,6 @@ type Configuration struct {
 	RedisPassword string `envconfig:"REDIS_PASSWORD" default:""`
 
 	Port int `envconfig:"PORT" default:"8080"`
+
+	ElasticSearchUrl string `envconfig:"ELASTICSEARCH_URL"`
 }

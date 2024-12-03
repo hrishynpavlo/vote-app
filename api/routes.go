@@ -11,10 +11,10 @@ import (
 )
 
 type VoteController struct {
-	db *persistance.RedisCache
+	db *persistance.Storage
 }
 
-func AddVoteController(db *persistance.RedisCache) *VoteController {
+func AddVoteController(db *persistance.Storage) *VoteController {
 	return &VoteController{
 		db: db,
 	}
@@ -49,7 +49,7 @@ func (h *VoteController) CreateVote(c *gin.Context) {
 
 func (h *VoteController) GetVotes(c *gin.Context) {
 
-	votes, err := h.db.GetVotes()
+	votes, err := h.db.Redis.GetVotes()
 	if err != nil {
 		log.Printf("Error getting votes: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "no votes"})
@@ -62,7 +62,7 @@ func (h *VoteController) GetVotes(c *gin.Context) {
 
 func (h *VoteController) GetVoteStats(c *gin.Context) {
 	id := c.Param("id")
-	voteStats, err := h.db.GetVoteStats(id)
+	voteStats, err := h.db.Redis.GetVoteStats(id)
 	if err != nil {
 		log.Printf("Error getting vote stats: %s", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "no vote stats"})
@@ -76,7 +76,7 @@ func (h *VoteController) GetVoteStats(c *gin.Context) {
 func (h *VoteController) Vote(c *gin.Context) {
 	id := c.Param("id")
 	optionID := c.Param("optionId")
-	voteStats, err := h.db.Vote(id, optionID)
+	voteStats, err := h.db.Redis.Vote(id, optionID)
 	if err != nil {
 		log.Printf("Error during voting: %s", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "vote rejected"})

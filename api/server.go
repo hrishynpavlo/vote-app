@@ -22,10 +22,7 @@ func AddGin(lc fx.Lifecycle, metricsRegistry metrics.Registry, voteController *V
 
 	r.GET("/", pingPong)
 
-	r.GET("/metrics", func(c *gin.Context) {
-		c.JSON(http.StatusOK, metricsRegistry.GetAll())
-		return
-	})
+	r.GET("/metrics", getMetrics(metricsRegistry))
 
 	api := r.Group("/api")
 	voteApi := api.Group("/vote")
@@ -74,4 +71,11 @@ func pingPong(c *gin.Context) {
 	})
 
 	return
+}
+
+func getMetrics(metricsRegistry metrics.Registry) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, metricsRegistry.GetAll())
+		return
+	}
 }
